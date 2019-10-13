@@ -11,7 +11,7 @@
 #include <GLFW/glfw3.h>
 #include <gl/GLU.h>
 #include <glm/glm.hpp>
-// #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 /******************************************************************************/
 // Object
@@ -21,8 +21,8 @@ class Object
 {
 protected:
     /**
-      * \brief Origin of the object in Cartesian coordinates.
-      */
+     * \brief Origin of the object in Cartesian coordinates.
+     */
     glm::vec3 mPosition = { 0, 0, 0 };
 
     /**
@@ -60,6 +60,11 @@ public:
     {
         // TODO: implement
         // keep in mind how the matrix stack & transformation works
+        glScalef(1 / mScaling.x, 1 / mScaling.y, 1 / mScaling.z);
+        glRotatef(-mOrientation.x, 1, 0, 0);
+        glRotatef(-mOrientation.y, 0, 1, 0);
+        glRotatef(-mOrientation.z, 0, 0, 1);
+        glTranslatef(-mPosition.x, -mPosition.y, -mPosition.z);
     }
 
     /**
@@ -69,6 +74,11 @@ public:
     void applyLocalToWorld() const
     {
         // TODO: implement
+        glTranslatef(mPosition.x, mPosition.y, mPosition.z);
+        glRotatef(mOrientation.z, 0, 0, 1);
+        glRotatef(mOrientation.y, 0, 1, 0);
+        glRotatef(mOrientation.x, 1, 0, 0);
+        glScalef(mScaling.x, mScaling.y, mScaling.z);
     }
 
     /**
@@ -132,6 +142,7 @@ public:
     void applyProjection() const override
     {
         // TODO: implement
+        gluPerspective(mFov, mAspect, mZNear, mZFar);
     }
 };
 
@@ -177,6 +188,7 @@ public:
     void applyProjection() const override
     {
         // TODO: implement
+        glOrtho(mLeft, mRight, mBottom, mTop, mNear, mFar);
     }
 };
 
@@ -201,6 +213,55 @@ public:
     void draw(float dt) override
     {
         // TODO: implement
+        glm::vec3 v[] = {
+            { mHalfSize, mHalfSize, mHalfSize },
+            { mHalfSize, mHalfSize, -mHalfSize },
+            { mHalfSize, -mHalfSize, mHalfSize },
+            { mHalfSize, -mHalfSize, -mHalfSize },
+            { -mHalfSize, mHalfSize, mHalfSize },
+            { -mHalfSize, mHalfSize, -mHalfSize },
+            { -mHalfSize, -mHalfSize, mHalfSize },
+            { -mHalfSize, -mHalfSize, -mHalfSize },
+        };
+
+        glBegin(GL_QUADS);
+            // top
+            glColor3ub(169, 102, 194);
+            glVertex3fv(value_ptr(v[1]));
+            glVertex3fv(value_ptr(v[0]));
+            glVertex3fv(value_ptr(v[4]));
+            glVertex3fv(value_ptr(v[5]));
+            // bottom
+            glColor3ub(164, 33, 14);
+            glVertex3fv(value_ptr(v[2]));
+            glVertex3fv(value_ptr(v[3]));
+            glVertex3fv(value_ptr(v[7]));
+            glVertex3fv(value_ptr(v[6]));
+            // left
+            glColor3ub(228, 69, 147);
+            glVertex3fv(value_ptr(v[5]));
+            glVertex3fv(value_ptr(v[4]));
+            glVertex3fv(value_ptr(v[6]));
+            glVertex3fv(value_ptr(v[7]));
+            // right
+            glColor3ub(136, 157, 210);
+            glVertex3fv(value_ptr(v[0]));
+            glVertex3fv(value_ptr(v[1]));
+            glVertex3fv(value_ptr(v[3]));
+            glVertex3fv(value_ptr(v[2]));
+            // front
+            glColor3ub(138, 250, 122);
+            glVertex3fv(value_ptr(v[1]));
+            glVertex3fv(value_ptr(v[5]));
+            glVertex3fv(value_ptr(v[7]));
+            glVertex3fv(value_ptr(v[3]));
+            // back
+            glColor3ub(1, 37, 146);
+            glVertex3fv(value_ptr(v[4]));
+            glVertex3fv(value_ptr(v[0]));
+            glVertex3fv(value_ptr(v[2]));
+            glVertex3fv(value_ptr(v[6]));
+        glEnd();
     }
 };
 
@@ -219,39 +280,41 @@ void window_size_callback(GLFWwindow* window, int width, int height)
 {
     gWindowWidth = width;
     gWindowHeight = height;
-    // this keeps the camera aspect correct after resizing the window
     gCamera.setAspect(static_cast<float>(gWindowWidth) / gWindowHeight);
 }
 
 void initScene()
 {
-    // TODO: set the positions of your camera
+    // TODO: set the positions of your cube and camera
+    gCamera.position().z = 5;
 }
 
 void update(float dt)
 {
-    // TODO: update the orientation of the cube
+    gCube.orientation().y += dt * 10;
 }
 
 void render(float dt)
 {
     glViewport(0, 0, gWindowWidth, gWindowHeight);
+    glEnable(GL_DEPTH_TEST);
 
-    // glMatrixMode(GL_PROJECTION);
+    glMatrixMode(GL_PROJECTION);
     // Reset the matrix
-    // glLoadIdentity();
+    glLoadIdentity();
     // Apply projection matrix
-    // gCamera.applyProjection();
+    gCamera.applyProjection();
 
-    // glMatrixMode(GL_MODELVIEW);
+    glMatrixMode(GL_MODELVIEW);
     // Reset the matrix
-    // glLoadIdentity();
+    glLoadIdentity();
     // Apply camera world-to-local transformation
-    // gCamera.applyWorldToLocal();
+    gCamera.applyWorldToLocal();
     // Apply cube local-to-world transformation
-    // gCube.applyLocalToWorld();
+    gCube.applyLocalToWorld();
 
     // TODO: Draw the cube
+    gCube.draw(dt);
 }
 
 int main(void)
@@ -261,6 +324,8 @@ int main(void)
     // Initialize the library
     if(!glfwInit())
         return -1;
+
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
     // Create a windowed mode window and its OpenGL context
     window = glfwCreateWindow(
@@ -296,7 +361,7 @@ int main(void)
 
         update(static_cast<float>(dt));
         // Clear the framebuffer
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // Set up the camera and draw our scene
         render(static_cast<float>(dt));
         // Swap front and back buffers
