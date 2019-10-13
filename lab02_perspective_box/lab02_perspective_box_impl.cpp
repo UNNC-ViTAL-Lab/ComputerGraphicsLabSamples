@@ -147,52 +147,6 @@ public:
 };
 
 /******************************************************************************/
-// OrthogonalCamera
-/******************************************************************************/
-
-class OrthogonalCamera : public Camera
-{
-    float mLeft = 0;
-    float mRight = 1280;
-    float mTop = 0;
-    float mBottom = -720;
-    float mNear = 0.1f;
-    float mFar = 100;
-
-public:
-    OrthogonalCamera() = default;
-
-    OrthogonalCamera(
-        float left,
-        float right,
-        float top,
-        float bottom,
-        float near,
-        float far)
-        : mLeft(left)
-        , mRight(right)
-        , mTop(top)
-        , mBottom(bottom)
-        , mNear(near)
-        , mFar(far)
-    {
-    }
-
-    void setLeft(float left) { mLeft = left; }
-    void setRight(float right) { mRight = right; }
-    void setTop(float top) { mTop = top; }
-    void setBottom(float bottom) { mBottom = bottom; }
-    void setNear(float near) { mNear = near; }
-    void setFar(float far) { mFar = far; }
-
-    void applyProjection() const override
-    {
-        // TODO: implement
-        glOrtho(mLeft, mRight, mBottom, mTop, mNear, mFar);
-    }
-};
-
-/******************************************************************************/
 // Cube
 /******************************************************************************/
 
