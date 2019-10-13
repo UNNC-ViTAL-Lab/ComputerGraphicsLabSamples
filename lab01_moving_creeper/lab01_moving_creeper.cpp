@@ -4,7 +4,7 @@
 #   pragma comment(lib, "OpenGL32.lib")
 #endif
 
-// This is a creeper's head
+// This is a creeper head
 const unsigned char PIXELS[64][3] = {
     { 159, 205, 165 }, { 15, 169, 19 }, { 65, 179, 76 }, { 157, 199, 157 },
     { 210, 210, 210 }, { 116, 220, 133 }, { 110, 204, 125 }, { 74, 144, 77 },

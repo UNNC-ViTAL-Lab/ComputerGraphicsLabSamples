@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lab01_moving_creeper", "lab
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lab01_empty_window", "lab01_empty_window\lab01_empty_window.vcxproj", "{ACC88A47-02F4-4C9E-A438-B873CC3A7402}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lab02_perspective_box", "lab02_perspective_box\lab02_perspective_box.vcxproj", "{7272AEBF-17EE-4917-8275-40B570A2AE6A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,14 @@ Global
 		{ACC88A47-02F4-4C9E-A438-B873CC3A7402}.Release|x64.Build.0 = Release|x64
 		{ACC88A47-02F4-4C9E-A438-B873CC3A7402}.Release|x86.ActiveCfg = Release|Win32
 		{ACC88A47-02F4-4C9E-A438-B873CC3A7402}.Release|x86.Build.0 = Release|Win32
+		{7272AEBF-17EE-4917-8275-40B570A2AE6A}.Debug|x64.ActiveCfg = Debug|x64
+		{7272AEBF-17EE-4917-8275-40B570A2AE6A}.Debug|x64.Build.0 = Debug|x64
+		{7272AEBF-17EE-4917-8275-40B570A2AE6A}.Debug|x86.ActiveCfg = Debug|Win32
+		{7272AEBF-17EE-4917-8275-40B570A2AE6A}.Debug|x86.Build.0 = Debug|Win32
+		{7272AEBF-17EE-4917-8275-40B570A2AE6A}.Release|x64.ActiveCfg = Release|x64
+		{7272AEBF-17EE-4917-8275-40B570A2AE6A}.Release|x64.Build.0 = Release|x64
+		{7272AEBF-17EE-4917-8275-40B570A2AE6A}.Release|x86.ActiveCfg = Release|Win32
+		{7272AEBF-17EE-4917-8275-40B570A2AE6A}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
