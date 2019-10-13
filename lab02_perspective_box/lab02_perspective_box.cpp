@@ -6,10 +6,16 @@
 #   undef far
 #   undef max
 #   undef min
+#   include <GL/gl.h>
+#   include <GL/glu.h>
+#endif
+
+#ifdef __APPLE__
+#   include <OpenGL/gl.h>
+#   include <OpenGL/glu.h>
 #endif
 
 #include <GLFW/glfw3.h>
-#include <gl/GLU.h>
 #include <glm/glm.hpp>
 // #include <glm/gtc/type_ptr.hpp>
 
