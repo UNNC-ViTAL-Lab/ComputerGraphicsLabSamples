@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="lab02_perspective_box_impl.cpp">
+    <ClCompile Include="lab02_perspective_box_minimal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
