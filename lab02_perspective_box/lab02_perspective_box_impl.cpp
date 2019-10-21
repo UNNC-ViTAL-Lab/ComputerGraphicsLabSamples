@@ -157,6 +157,13 @@ public:
 // Cube
 /*****************************************************************************/
 
+#define QUAD_INDICES(array, a, b, c, d) \
+    glVertex3fv(value_ptr(array[a])); \
+    glVertex3fv(value_ptr(array[b])); \
+    glVertex3fv(value_ptr(array[c])); \
+    glVertex3fv(value_ptr(array[d])); \
+/**/
+
 class Cube : public Object
 {
     float mHalfSize = 0.5f;
@@ -188,40 +195,22 @@ public:
         glBegin(GL_QUADS);
             // top
             glColor3ub(169, 102, 194);
-            glVertex3fv(value_ptr(v[1]));
-            glVertex3fv(value_ptr(v[0]));
-            glVertex3fv(value_ptr(v[4]));
-            glVertex3fv(value_ptr(v[5]));
+            QUAD_INDICES(v, 1, 0, 4, 5);
             // bottom
             glColor3ub(164, 33, 14);
-            glVertex3fv(value_ptr(v[2]));
-            glVertex3fv(value_ptr(v[3]));
-            glVertex3fv(value_ptr(v[7]));
-            glVertex3fv(value_ptr(v[6]));
+            QUAD_INDICES(v, 2, 3, 7, 6);
             // left
             glColor3ub(228, 69, 147);
-            glVertex3fv(value_ptr(v[5]));
-            glVertex3fv(value_ptr(v[4]));
-            glVertex3fv(value_ptr(v[6]));
-            glVertex3fv(value_ptr(v[7]));
+            QUAD_INDICES(v, 5, 4, 6, 7);
             // right
             glColor3ub(136, 157, 210);
-            glVertex3fv(value_ptr(v[0]));
-            glVertex3fv(value_ptr(v[1]));
-            glVertex3fv(value_ptr(v[3]));
-            glVertex3fv(value_ptr(v[2]));
+            QUAD_INDICES(v, 0, 1, 3, 2);
             // front
             glColor3ub(138, 250, 122);
-            glVertex3fv(value_ptr(v[1]));
-            glVertex3fv(value_ptr(v[5]));
-            glVertex3fv(value_ptr(v[7]));
-            glVertex3fv(value_ptr(v[3]));
+            QUAD_INDICES(v, 1, 5, 7, 3);
             // back
             glColor3ub(1, 37, 146);
-            glVertex3fv(value_ptr(v[4]));
-            glVertex3fv(value_ptr(v[0]));
-            glVertex3fv(value_ptr(v[2]));
-            glVertex3fv(value_ptr(v[6]));
+            QUAD_INDICES(v, 4, 0, 2, 6);
         glEnd();
     }
 };

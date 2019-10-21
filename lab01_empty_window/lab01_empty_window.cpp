@@ -6,6 +6,14 @@
 void render()
 {
     // We will be doing something here in the future
+    glBegin(GL_LINE_LOOP);
+        glColor3d(1, 0, 0);
+        glVertex2d(0, 0.5);
+        glColor3d(0, 1, 0);
+        glVertex2d(0.5, -0.5);
+        glColor3d(0, 0, 1);
+        glVertex2d(-0.5, -0.5);
+    glEnd();
 }
 
 int main(void)
