@@ -174,8 +174,8 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
     auto dy = ypos - gLastMouseY;
     gLastMouseX = xpos;
     gLastMouseY = ypos;
-    // if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2))
-    //     gCamera.orientation().y -= (float)dx * 0.1f;
+    if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2))
+        gCamera.orientation().y -= (float)dx * 0.1f;
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -201,8 +201,62 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         case GLFW_KEY_SPACE:
             gCube.position().y += step;
             break;
-        case GLFW_KEY_LEFT_SHIFT:
+        case GLFW_KEY_LEFT_CONTROL:
             gCube.position().y -= step;
+            break;
+
+        case GLFW_KEY_Q:
+            gCube.orientation().y += 10;
+            break;
+        case GLFW_KEY_E:
+            gCube.orientation().y -= 10;
+            break;
+        case GLFW_KEY_LEFT:
+            gCube.orientation().z += 10;
+            break;
+        case GLFW_KEY_RIGHT:
+            gCube.orientation().z -= 10;
+            break;
+        case GLFW_KEY_UP:
+            gCube.orientation().x -= 10;
+            break;
+        case GLFW_KEY_DOWN:
+            gCube.orientation().x += 10;
+            break;
+
+        case GLFW_KEY_1:
+            gCube.scaling() = { 1, 1, 1 };
+            break;
+        case GLFW_KEY_2:
+            gCube.scaling() = { 2, 2, 2 };
+            break;
+        case GLFW_KEY_3:
+            gCube.scaling() = { 5, 5, 5 };
+            break;
+        case GLFW_KEY_4:
+            gCube.scaling().y *= 1.1f;
+            break;
+        case GLFW_KEY_5:
+            gCube.scaling().y /= 1.1f;
+            break;
+
+        case GLFW_KEY_I:
+            gCamera.position().z -= step;
+            break;
+        case GLFW_KEY_J:
+            gCamera.position().x -= step;
+            break;
+        case GLFW_KEY_K:
+            gCamera.position().z += step;
+            break;
+        case GLFW_KEY_L:
+            gCamera.position().x += step;
+            break;
+        case GLFW_KEY_U:
+            gCamera.position().y -= step;
+            break;
+        case GLFW_KEY_O:
+            gCamera.position().y += step;
             break;
     }
 }
@@ -216,9 +270,12 @@ void initScene()
     gCamera.position().z = 5;
 }
 
+glm::vec3 gCameraCenter;
+
 void update(float dt)
 {
     // gCube.orientation().y += dt * 10;
+    gCameraCenter = gCube.position();
 }
 
 void render(float dt)
@@ -236,6 +293,7 @@ void render(float dt)
     // Reset the matrix
     glLoadIdentity();
     // Apply camera world-to-local transformation
+    // glTranslatef(-gCameraCenter.x, -gCameraCenter.y, -gCameraCenter.z);
     gCamera.applyWorldToLocal();
     // This is a new function which applies the transformation automatically
     gAxis.drawTransformed(dt);
