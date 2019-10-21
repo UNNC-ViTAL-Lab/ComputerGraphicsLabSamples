@@ -154,7 +154,7 @@ const char *gWindowTitle = "Cube";
 PerspectiveCamera gCamera;
 Axis gAxis;
 MeshGround gGround;
-// Cube gCube;
+Cube gCube;
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
@@ -176,6 +176,35 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
     gLastMouseY = ypos;
     // if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2))
     //     gCamera.orientation().y -= (float)dx * 0.1f;
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if(!action) return;
+
+    float step = 0.1f;
+
+    switch(key)
+    {
+        case GLFW_KEY_W:
+            gCube.position().z -= step;
+            break;
+        case GLFW_KEY_A:
+            gCube.position().x -= step;
+            break;
+        case GLFW_KEY_S:
+            gCube.position().z += step;
+            break;
+        case GLFW_KEY_D:
+            gCube.position().x += step;
+            break;
+        case GLFW_KEY_SPACE:
+            gCube.position().y += step;
+            break;
+        case GLFW_KEY_LEFT_SHIFT:
+            gCube.position().y -= step;
+            break;
+    }
 }
 
 void initScene()
@@ -211,7 +240,7 @@ void render(float dt)
     // This is a new function which applies the transformation automatically
     gAxis.drawTransformed(dt);
     gGround.drawTransformed(dt);
-    // gCube.drawTransformed(dt);
+    gCube.drawTransformed(dt);
 }
 
 void installCallbacks(GLFWwindow *window)
@@ -219,6 +248,7 @@ void installCallbacks(GLFWwindow *window)
     // Register our callbacks so we can know when the events occur.
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetKeyCallback(window, key_callback);
 }
 
 void mainLoop(GLFWwindow *window)
