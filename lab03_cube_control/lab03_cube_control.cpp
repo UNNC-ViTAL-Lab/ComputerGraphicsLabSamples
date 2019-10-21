@@ -67,13 +67,13 @@ public:
         glBegin(GL_LINES);
             glColor3f(0.75f, 0.75f, 0.75f);
             // draw horizontal lines
-            for(float i = -mSize; i < mSize; i += mStep)
+            for(float i = -mSize; i <= mSize; i += mStep)
             {
                 glVertex3f(-mSize, mHeight, i);
                 glVertex3f(mSize, mHeight, i);
             }
             // draw deep lines
-            for(float i = -mSize; i < mSize; i += mStep)
+            for(float i = -mSize; i <= mSize; i += mStep)
             {
                 glVertex3f(i, mHeight, -mSize);
                 glVertex3f(i, mHeight, mSize);
@@ -152,9 +152,9 @@ int gFramebufferHeight = 720;
 const char *gWindowTitle = "Cube";
 
 PerspectiveCamera gCamera;
-Cube gCube;
 Axis gAxis;
 MeshGround gGround;
+// Cube gCube;
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
@@ -174,8 +174,8 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
     auto dy = ypos - gLastMouseY;
     gLastMouseX = xpos;
     gLastMouseY = ypos;
-    if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2))
-        gCamera.orientation().y -= (float)dx * 0.1f;
+    // if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2))
+    //     gCamera.orientation().y -= (float)dx * 0.1f;
 }
 
 void initScene()
@@ -189,7 +189,7 @@ void initScene()
 
 void update(float dt)
 {
-    gCube.orientation().y += dt * 10;
+    // gCube.orientation().y += dt * 10;
 }
 
 void render(float dt)
