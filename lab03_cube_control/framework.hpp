@@ -65,7 +65,7 @@ public:
      * \brief Concatenate the matrix for converting positions into the local
      * space of this object. Useful for cameras.
      */
-    void applyWorldToLocal() const
+    virtual void applyWorldToLocal() const
     {
         // keep in mind how the matrix stack & transformation works
         glScalef(1 / mScaling.x, 1 / mScaling.y, 1 / mScaling.z);
@@ -79,7 +79,7 @@ public:
      * \brief Concatenate the matrix for converting positions from the local
      * space of the object into the world space. Useful for renderable objects.
      */
-    void applyLocalToWorld() const
+    virtual void applyLocalToWorld() const
     {
         glTranslatef(mPosition.x, mPosition.y, mPosition.z);
         glRotatef(mOrientation.z, 0, 0, 1);
