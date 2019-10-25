@@ -16,11 +16,6 @@ OrthogonalCamera *gCamera = gSceneRoot.addChild<OrthogonalCamera>();
 
 void initScene()
 {
-    gSceneRoot.addChild<Object>();
-    gSceneRoot.addChild<Object>();
-    gSceneRoot.addChild<Object>();
-    gSceneRoot.addChild<Object>()->addChild<Object>();
-    // gCamera.position().z = 5;
 }
 
 /*****************************************************************************/
@@ -29,12 +24,45 @@ void initScene()
 
 void update(float dt)
 {
-    // gCube.orientation().y += dt * 10;
 }
 
 /*****************************************************************************/
 // Scene Update
 /*****************************************************************************/
+
+void drawBranches(int max_depth = 5)
+{
+    if(max_depth == 0) return;
+
+    const int length = 50 + 20 * max_depth;
+    const float angle = 7.5f * max_depth;
+    const unsigned color = 100 + max_depth * 30;
+
+    glLineWidth(max_depth);
+    glColor3ub(color, color, color);
+    glBegin(GL_LINES);
+        glVertex2f(0, 0);
+        glVertex2f(0, length);
+    glEnd();
+
+    glPushMatrix();
+    glTranslatef(0, length, 0);
+    glRotatef(angle, 0, 0, 1);
+    drawBranches(max_depth - 1);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(0, length, 0);
+    glRotatef(-angle, 0, 0, 1);
+    drawBranches(max_depth - 1);
+    glPopMatrix();
+}
+
+void drawTree()
+{
+    glTranslatef(1280 / 2.f, 0, 0);
+    drawBranches();
+}
 
 void render(float dt)
 {
@@ -54,11 +82,13 @@ void render(float dt)
     // Reset the matrix
     glLoadIdentity();
     // Apply camera world-to-local transformation
-    gCamera->applyLocalToParentMatrix();
+    // gCamera->applyLocalToParentMatrix();
     // This is a new function which applies the transformation automatically
     // gAxis.drawTransformed(dt);
     // gGround.drawTransformed(dt);
     // gCube.drawTransformed(dt);
+
+    drawTree();
 }
 
 /*****************************************************************************/

@@ -46,6 +46,8 @@
 class Object
 {
 protected:
+    Object *mParent = nullptr;
+
     /**
      * \brief This variable stores the translation distance of the object
      * relative to the parent coordinate system. The value will be used with
@@ -147,6 +149,18 @@ public:
         glTranslatef(-mPosition.x, -mPosition.y, -mPosition.z);
     }
 
+    void applyLocalToWorldMatrix() const
+    {
+        if(mParent) mParent->applyLocalToWorldMatrix();
+        applyLocalToParentMatrix();
+    }
+
+    void applyWorldToLocalMatrix() const
+    {
+        applyParentToLocalMatrix();
+        if(mParent) mParent->applyWorldToLocalMatrix();
+    }
+
     /**
      * \brief Issue drawing commands like glBegin() & glEnd().
      * \param dt The elapsed time since last frame. Useful for animations.
@@ -158,7 +172,7 @@ public:
     /**
      * \brief A helper function which draws this object with its tranformations.
      * \param dt The elapsed time since last frame. Useful for animations.
-     * This function is NOT overridable1.
+     * This function is NOT overridable.
      */
     void drawTransformed(float dt)
     {
@@ -190,10 +204,15 @@ public:
     template <typename T, typename... Args> // <- a variadic template
     T * addChild(Args &&...args)
     {
+        // Ensure you are creating an Object or derived type
         static_assert(std::is_base_of_v<Object, T>,
             "T is not a derived type of Object!");
+        // Create the child object and push it into the children vector
         mChildObjects.push_back(std::make_unique<T>(
             std::forward<Args>(args)...));
+        // Link the child with parent
+        mChildObjects.back()->mParent = this;
+        // Return a pointer to the newly created child
         return static_cast<T*>(mChildObjects.back().get());
     }
 
@@ -292,9 +311,8 @@ class OrthogonalCamera : public Camera
 {
     float mLeft = 0;
     float mRight = 1280;
-    // Note that the Y-axis is inverted by swapping the top and bottom
-    float mTop = 0;
-    float mBottom = 720;
+    float mTop = 720;
+    float mBottom = 0;
     float mNear = -10;
     float mFar = 10;
 
@@ -327,6 +345,11 @@ public:
     void applyProjection() const override
     {
         glOrtho(mLeft, mRight, mBottom, mTop, mNear, mFar);
+    }
+
+    void flipY()
+    {
+        std::swap(mTop, mBottom);
     }
 };
 
