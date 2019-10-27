@@ -30,39 +30,41 @@ void update(float dt)
 // Scene Rendering
 /*****************************************************************************/
 
-void drawBranches(int max_depth = 5)
+int a = 3;
+int b = -121;
+
+void turtle()
 {
-    if(max_depth == 0) return;
-
-    const int length = 50 + 20 * max_depth;
-    const float angle = 7.5f * max_depth;
-    const unsigned color = 100 + max_depth * 30;
-
-    glLineWidth(max_depth);
-    glColor3ub(color, color, color);
-
-    glBegin(GL_LINES);
-        glVertex2f(0, 0);
-        glVertex2f(0, length);
-    glEnd();
-
-    glPushMatrix();
-        glTranslatef(0, length, 0);
-        glRotatef(angle, 0, 0, 1);
-        drawBranches(max_depth - 1);
-    glPopMatrix();
-
-    glPushMatrix();
-        glTranslatef(0, length, 0);
-        glRotatef(-angle, 0, 0, 1);
-        drawBranches(max_depth - 1);
-    glPopMatrix();
-}
-
-void drawTree()
-{
-    glTranslatef(1280 / 2.f, 0, 0);
-    drawBranches();
+    // // Move to the starting point
+    // glTranslatef(520, 0, 0);
+    // glRotatef(90, 0, 0, 1);
+    // glTranslatef(240, 0, 0);
+    // // Draw a box
+    // for(int i = 0; i < 4; ++i)
+    // {
+    //     // Pen down & move forward
+    //     glBegin(GL_LINES);
+    //     glVertex2f(0, 0);
+    //     glVertex2f(240, 0);
+    //     glEnd();
+    //     glTranslatef(240, 0, 0);
+    //     // Turn right
+    //     glRotatef(-90, 0, 0, 1);
+    // }
+    glTranslatef(640, 0, 0);
+    glRotatef(90, 0, 0, 1);
+    glTranslatef(360, 0, 0);
+    for(int i = 0; i < 200; ++i)
+    {
+        // Pen down & move forward
+        glBegin(GL_LINES);
+            glVertex2f(0, 0);
+            glVertex2f(i * a, 0);
+        glEnd();
+        glTranslatef(i * a, 0, 0);
+        // Turn right
+        glRotatef(b, 0, 0, 1);
+    }
 }
 
 void render(float dt)
@@ -89,7 +91,7 @@ void render(float dt)
     // gGround.drawTransformed(dt);
     // gCube.drawTransformed(dt);
 
-    drawTree();
+    turtle();
 }
 
 /*****************************************************************************/
@@ -137,6 +139,29 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         case GLFW_KEY_H:
             gSceneRoot.printObjectHierarchy();
             break;
+
+        case GLFW_KEY_1:
+            --a;
+            break;
+
+        case GLFW_KEY_2:
+            ++a;
+            break;
+
+        case GLFW_KEY_3:
+            --b;
+            break;
+
+        case GLFW_KEY_4:
+            ++b;
+            break;
+
+
+        case GLFW_KEY_5:
+            std::cout << "a = " << a << " b =" << b << std::endl;
+            break;
+
+
     }
 }
 

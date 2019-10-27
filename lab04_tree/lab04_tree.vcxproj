@@ -123,10 +123,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="lab04_tree.cpp" />
+    <ClInclude Include="lab04_framework.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="lab04_framework.hpp" />
+    <ClCompile Include="lab04_tree.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
