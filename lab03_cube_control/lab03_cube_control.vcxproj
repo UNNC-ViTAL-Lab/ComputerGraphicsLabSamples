@@ -123,7 +123,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="framework.hpp" />
+    <ClInclude Include="lab03_framework.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lab03_cube_control.cpp" />
