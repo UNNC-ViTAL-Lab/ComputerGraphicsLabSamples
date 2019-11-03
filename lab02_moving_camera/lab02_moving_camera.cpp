@@ -117,7 +117,7 @@ public:
     /**
      * \brief Apply the projection matrix.
      */
-    virtual void applyProjection() const = 0;
+    virtual void applyProjectionMatrix() const = 0;
 };
 
 /******************************************************************************/
@@ -147,7 +147,7 @@ public:
     void setZNear(float near) { mZNear = near; }
     void setZFar(float far) { mZFar = far; }
 
-    void applyProjection() const override
+    void applyProjectionMatrix() const override
     {
         // TODO: implement
         gluPerspective(mFov, mAspect, mZNear, mZFar);
@@ -294,7 +294,7 @@ void render(float dt)
     // Reset the matrix
     glLoadIdentity();
     // Apply projection matrix
-    gCamera.applyProjection();
+    gCamera.applyProjectionMatrix();
 
     glMatrixMode(GL_MODELVIEW);
     // Reset the matrix

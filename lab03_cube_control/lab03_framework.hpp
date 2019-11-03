@@ -130,7 +130,7 @@ public:
     /**
      * \brief Apply the projection matrix.
      */
-    virtual void applyProjection() const = 0;
+    virtual void applyProjectionMatrix() const = 0;
 };
 
 /*****************************************************************************/
@@ -160,7 +160,7 @@ public:
     void setZNear(float near) { mZNear = near; }
     void setZFar(float far) { mZFar = far; }
 
-    void applyProjection() const override
+    void applyProjectionMatrix() const override
     {
         gluPerspective(mFov, mAspect, mZNear, mZFar);
     }
@@ -205,7 +205,7 @@ public:
     void setNear(float near) { mNear = near; }
     void setFar(float far) { mFar = far; }
 
-    void applyProjection() const override
+    void applyProjectionMatrix() const override
     {
         glOrtho(mLeft, mRight, mBottom, mTop, mNear, mFar);
     }

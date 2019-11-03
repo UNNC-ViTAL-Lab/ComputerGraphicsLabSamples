@@ -117,7 +117,7 @@ public:
     /**
      * \brief Apply the projection matrix.
      */
-    virtual void applyProjection() const = 0;
+    virtual void applyProjectionMatrix() const = 0;
 };
 
 /******************************************************************************/
@@ -159,7 +159,7 @@ public:
     void setNear(float near) { mNear = near; }
     void setFar(float far) { mFar = far; }
 
-    void applyProjection() const override
+    void applyProjectionMatrix() const override
     {
         // TODO: implement
         glOrtho(mLeft, mRight, mBottom, mTop, mNear, mFar);
@@ -263,7 +263,7 @@ void render(float dt)
     // Reset the matrix
     glLoadIdentity();
     // Apply projection matrix
-    gCamera.applyProjection();
+    gCamera.applyProjectionMatrix();
 
     glMatrixMode(GL_MODELVIEW);
     // Reset the matrix

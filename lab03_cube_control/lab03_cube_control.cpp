@@ -287,7 +287,7 @@ void render(float dt)
     // Reset the matrix
     glLoadIdentity();
     // Apply projection matrix
-    gCamera.applyProjection();
+    gCamera.applyProjectionMatrix();
 
     glMatrixMode(GL_MODELVIEW);
     // Reset the matrix
