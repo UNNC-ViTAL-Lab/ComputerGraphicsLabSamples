@@ -1,7 +1,5 @@
 ﻿#include "lab05_framework.hpp"
 
-extern float gHalfWidth;
-
 /*****************************************************************************/
 // Scene Objects
 /*****************************************************************************/
@@ -39,7 +37,7 @@ Cube gFrustum { 1 };
 
 void updateCamera()
 {
-    const float aspect = gHalfWidth / gFramebufferHeight;
+    const float aspect = 1.f * gHalfWidth / gFramebufferHeight;
 
     gLeftCamera->setAspect(aspect);
     gRightCameraPersp->setAspect(aspect);
@@ -185,9 +183,9 @@ void render(float dt)
 // Window Management
 /*****************************************************************************/
 
-float gFramebufferWidth = 1280;
-float gFramebufferHeight = 720;
-float gHalfWidth = gFramebufferWidth / 2;
+int gFramebufferWidth = 1280;
+int gFramebufferHeight = 720;
+int gHalfWidth = gFramebufferWidth / 2;
 const char *gWindowTitle = "Lab 5";
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)

@@ -548,8 +548,9 @@ void render(float dt);
 void update(GLFWwindow *window, float dt);
 void mainLoop(GLFWwindow *window);
 
-extern float gFramebufferWidth;
-extern float gFramebufferHeight;
+extern int gFramebufferWidth;
+extern int gFramebufferHeight;
+extern int gHalfWidth;
 extern const char *gWindowTitle;
 
 void mainLoop(GLFWwindow *window)
@@ -596,10 +597,7 @@ int main(void)
         return -1;
     }
     // Get the correct size of the framebuffer.
-    int w, h;
-    glfwGetFramebufferSize(window, &w, &h);
-    gFramebufferWidth = w;
-    gFramebufferHeight = h;
+    glfwGetFramebufferSize(window, &gFramebufferWidth, &gFramebufferHeight);
 
     installCallbacks(window);
 
