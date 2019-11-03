@@ -30,6 +30,7 @@ Camera *activeCamera()
 
 // Shows the viewing frustum of the camera on the right side
 Cube gFrustum { 1 };
+bool gLookAt = false;
 
 /*****************************************************************************/
 // Scene Creation
@@ -53,7 +54,7 @@ void initScene()
 {
     updateCamera();
 
-    gLeftCamera->position().z = 10;
+    gLeftCamera->position().z = 20;
     gLeftCamera->setZFar(1000);
 
     gRightCameraOrtho->orientation().x = -90;
@@ -98,10 +99,10 @@ void update(GLFWwindow *window, float dt)
     if(glfwGetKey(window, GLFW_KEY_E))
         move.y += step;
 
-    if(glfwGetKey(window, GLFW_KEY_LEFT_CONTROL))
-        gLeftCamera->position() += move;
-    else
-        activeCamera()->position() += move;
+    (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)
+         ? activeCamera()
+         : gLeftCamera
+    )->position() += move;
 }
 
 /*****************************************************************************/
@@ -138,7 +139,23 @@ void drawLeftViewport(float dt)
     // Transform the NDC cube from NDC->View->World
     // Recall that in NDC space everything is in the range of [-1, 1] on every
     // axis.
-    activeCamera()->applyLocalToWorldMatrix();
+    if(gLookAt)
+    {
+        // Argument-dependent lookup automatically figures out that
+        // the functions are from glm namespace because we use glm::vec3
+        // as parameters for the outer function templates.
+        glMultMatrixf(value_ptr(inverse(
+            lookAt(
+                glm::vec3 { 5, 5, 5 },
+                glm::vec3 { 0, 0, 0 },
+                glm::vec3 { 0, 1, 0 }
+            ))));
+    }
+    else
+    {
+        activeCamera()->applyLocalToWorldMatrix();
+    }
+
     activeCamera()->applyInverseProjectionMatrix();
     gFrustum.draw(dt);
 }
@@ -159,7 +176,19 @@ void drawRightViewport(float dt)
     // Reset the matrix
     glLoadIdentity();
     // Apply camera world-to-local transformation
-    activeCamera()->applyWorldToLocalMatrix();
+    if(gLookAt)
+    {
+        glMultMatrixf(value_ptr(
+            lookAt(
+                glm::vec3 { 5, 5, 5 },
+                glm::vec3 { 0, 0, 0 },
+                glm::vec3 { 0, 1, 0 }
+            )));
+    }
+    else
+    {
+        activeCamera()->applyWorldToLocalMatrix();
+    }
 
     // Draw the complete scene hierarchy
     gSceneRoot.drawHierarchyTransformed(dt);
@@ -170,6 +199,7 @@ void render(float dt)
     // Clear the framebuffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // Save all current attributes
     glPushAttrib(GL_ALL_ATTRIB_BITS);
     drawLeftViewport(dt);
     glPopAttrib();
@@ -212,7 +242,12 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
     gLastMouseX = xpos;
     gLastMouseY = ypos;
     if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2))
-        gLeftCamera->orientation().y -= (float)dx * 0.1f;
+    {
+        (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)
+            ? activeCamera()
+            : gLeftCamera
+        )->orientation().y -= (float)dx * 0.1f;
+    }
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -227,6 +262,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
         case GLFW_KEY_SPACE:
             gCameraSelection = (gCameraSelection + 1) % 2;
+            break;
+
+        case GLFW_KEY_L:
+            gLookAt = !gLookAt;
             break;
 
         default: ;
