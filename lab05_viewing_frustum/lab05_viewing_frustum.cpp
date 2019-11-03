@@ -1,5 +1,7 @@
 ﻿#include "lab05_framework.hpp"
 
+extern float gHalfWidth;
+
 /*****************************************************************************/
 // Scene Objects
 /*****************************************************************************/
@@ -7,10 +9,11 @@
 Object gSceneRoot;
 auto *gAxis = gSceneRoot.addChild<Axis>();
 auto *gGround = gSceneRoot.addChild<MeshGround>();
-auto *gCube = gSceneRoot.addChild<Cube>();
+// auto *gCube = gSceneRoot.addChild<Cube>();
+Cube gFrustum { 1 };
 
 auto *gLeftCamera = gSceneRoot.addChild<PerspectiveCamera>();
-auto *gRightCamera = gSceneRoot.addChild<PerspectiveCamera>();
+auto *gRightCamera = gSceneRoot.addChild<OrthogonalCamera>();
 
 /*****************************************************************************/
 // Scene Creation
@@ -18,23 +21,60 @@ auto *gRightCamera = gSceneRoot.addChild<PerspectiveCamera>();
 
 void updateCamera()
 {
-    gLeftCamera->setAspect(
-        static_cast<float>(gFramebufferWidth / 2) / gFramebufferHeight
-    );
+    const float aspect = gHalfWidth / gFramebufferHeight;
+
+    gLeftCamera->setAspect(aspect);
+
+    const float view_size = 50;
+    gRightCamera->setLeft(-view_size * aspect);
+    gRightCamera->setRight(view_size * aspect);
+    gRightCamera->setTop(view_size);
+    gRightCamera->setBottom(-view_size);
 }
 
 void initScene()
 {
     updateCamera();
+
     gLeftCamera->position().z = 5;
+    gLeftCamera->setZFar(1000);
+
+    gRightCamera->orientation().x = -90;
+    gRightCamera->position().y = 5;
 }
 
 /*****************************************************************************/
 // Scene Update
 /*****************************************************************************/
 
-void update(float dt)
+void update(GLFWwindow *window, float dt)
 {
+    auto multiplier = 1.f;
+    if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT))
+        multiplier *= 10;
+    if(glfwGetKey(window, GLFW_KEY_LEFT_ALT))
+        multiplier /= 10;
+    const auto step = 0.1f * multiplier;
+
+    glm::vec3 move { 0, 0, 0 };
+
+    if(glfwGetKey(window, GLFW_KEY_W))
+        move.z -= step;
+    if(glfwGetKey(window, GLFW_KEY_A))
+        move.x -= step;
+    if(glfwGetKey(window, GLFW_KEY_S))
+        move.z += step;
+    if(glfwGetKey(window, GLFW_KEY_D))
+        move.x += step;
+    if(glfwGetKey(window, GLFW_KEY_Q))
+        move.y -= step;
+    if(glfwGetKey(window, GLFW_KEY_E))
+        move.y += step;
+
+    if(glfwGetKey(window, GLFW_KEY_LEFT_CONTROL))
+        gLeftCamera->position() += move;
+    else
+        gRightCamera->position() += move;
 }
 
 /*****************************************************************************/
@@ -43,7 +83,44 @@ void update(float dt)
 
 void drawLeftViewport(float dt)
 {
-    glViewport(0, 0, gFramebufferWidth / 2, gFramebufferHeight);
+    glViewport(0, 0, gHalfWidth, gFramebufferHeight);
+
+
+    glMatrixMode(GL_PROJECTION);
+    // Reset the matrix
+    glLoadIdentity();
+    // Apply projection matrix
+    gLeftCamera->applyProjectionMatrix();
+
+    glMatrixMode(GL_MODELVIEW);
+    // Reset the matrix
+    glLoadIdentity();
+    // Apply camera world-to-local transformation
+    gLeftCamera->applyWorldToLocalMatrix();
+
+    // Enable alpha blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Draw the viewing frustum of the right camera
+
+    glPushMatrix();
+    // NDC->View->World
+    gRightCamera->applyLocalToWorldMatrix();
+    gRightCamera->applyInverseProjectionMatrix();
+    gFrustum.draw(dt);
+    glPopMatrix();
+
+    // Draw scene objects
+
+    glEnable(GL_DEPTH_TEST);
+    // Draw the complete scene hierarchy
+    gSceneRoot.drawHierarchyTransformed(dt);
+}
+
+void drawRightViewport(float dt)
+{
+    glViewport(gHalfWidth, 0, gHalfWidth, gFramebufferHeight);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -51,13 +128,14 @@ void drawLeftViewport(float dt)
     // Reset the matrix
     glLoadIdentity();
     // Apply projection matrix
-    gLeftCamera->applyProjection();
+    gRightCamera->applyProjectionMatrix();
 
     glMatrixMode(GL_MODELVIEW);
     // Reset the matrix
     glLoadIdentity();
     // Apply camera world-to-local transformation
-    gLeftCamera->applyWorldToLocalMatrix();
+    gRightCamera->applyWorldToLocalMatrix();
+
     // Draw the complete scene hierarchy
     gSceneRoot.drawHierarchyTransformed(dt);
 }
@@ -67,15 +145,22 @@ void render(float dt)
     // Clear the framebuffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
     drawLeftViewport(dt);
+    glPopAttrib();
+
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    drawRightViewport(dt);
+    glPopAttrib();
 }
 
 /*****************************************************************************/
 // Window Management
 /*****************************************************************************/
 
-int gFramebufferWidth = 1280;
-int gFramebufferHeight = 720;
+float gFramebufferWidth = 1280;
+float gFramebufferHeight = 720;
+float gHalfWidth = gFramebufferWidth / 2;
 const char *gWindowTitle = "Lab 5";
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
@@ -83,6 +168,7 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height)
     // Record the correct size of the viewport
     gFramebufferWidth = width;
     gFramebufferHeight = height;
+    gHalfWidth = gFramebufferWidth / 2;
     updateCamera();
 }
 
@@ -108,32 +194,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 {
     if(!action) return;
 
-    float step = 0.1f;
-
     switch(key)
     {
         case GLFW_KEY_H:
             gSceneRoot.printObjectHierarchy();
             break;
 
-        case GLFW_KEY_I:
-            gLeftCamera->position().z -= step;
-            break;
-        case GLFW_KEY_J:
-            gLeftCamera->position().x -= step;
-            break;
-        case GLFW_KEY_K:
-            gLeftCamera->position().z += step;
-            break;
-        case GLFW_KEY_L:
-            gLeftCamera->position().x += step;
-            break;
-        case GLFW_KEY_U:
-            gLeftCamera->position().y -= step;
-            break;
-        case GLFW_KEY_O:
-            gLeftCamera->position().y += step;
-            break;
+        default: ;
     }
 }
 

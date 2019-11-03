@@ -283,7 +283,9 @@ public:
     /**
      * \brief Apply the projection matrix.
      */
-    virtual void applyProjection() const = 0;
+    virtual void applyProjectionMatrix() const = 0;
+
+    virtual void applyInverseProjectionMatrix() const = 0;
 };
 
 /*****************************************************************************/
@@ -314,9 +316,16 @@ public:
     void setZNear(float near) { mZNear = near; }
     void setZFar(float far) { mZFar = far; }
 
-    void applyProjection() const override
+    void applyProjectionMatrix() const override
     {
         gluPerspective(mFov, mAspect, mZNear, mZFar);
+    }
+
+    void applyInverseProjectionMatrix() const override
+    {
+        auto mat = glm::perspective(mFov, mAspect, mZNear, mZFar);
+        mat = inverse(mat);
+        glMultMatrixf(value_ptr(mat));
     }
 };
 
@@ -359,9 +368,16 @@ public:
     void setNear(float near) { mNear = near; }
     void setFar(float far) { mFar = far; }
 
-    void applyProjection() const override
+    void applyProjectionMatrix() const override
     {
         glOrtho(mLeft, mRight, mBottom, mTop, mNear, mFar);
+    }
+
+    void applyInverseProjectionMatrix() const override
+    {
+        auto mat = glm::ortho(mLeft, mRight, mBottom, mTop, mNear, mFar);
+        mat = inverse(mat);
+        glMultMatrixf(value_ptr(mat));
     }
 
     void flipY()
@@ -502,36 +518,36 @@ public:
 
         glBegin(GL_QUADS);
         // top
-        glColor3ub(169, 102, 194);
+        glColor4ub(169, 102, 194, 128);
         // This is calling a macro defined above!
         QUAD_INDICES(v, 1, 0, 4, 5);
         // bottom
-        glColor3ub(164, 33, 14);
+        glColor4ub(164, 33, 14, 128);
         QUAD_INDICES(v, 2, 3, 7, 6);
         // left
-        glColor3ub(228, 69, 147);
+        glColor4ub(228, 69, 147, 128);
         QUAD_INDICES(v, 5, 4, 6, 7);
         // right
-        glColor3ub(136, 157, 210);
+        glColor4ub(136, 157, 210, 128);
         QUAD_INDICES(v, 0, 1, 3, 2);
         // front
-        glColor3ub(138, 250, 122);
+        glColor4ub(138, 250, 122, 128);
         QUAD_INDICES(v, 1, 5, 7, 3);
         // back
-        glColor3ub(1, 37, 146);
+        glColor4ub(1, 37, 146, 128);
         QUAD_INDICES(v, 4, 0, 2, 6);
         glEnd();
     }
 };
 
-void installCallbacks(GLFWwindow* window);
+void installCallbacks(GLFWwindow *window);
 void initScene();
 void render(float dt);
-void update(float dt);
-void mainLoop(GLFWwindow* window);
+void update(GLFWwindow *window, float dt);
+void mainLoop(GLFWwindow *window);
 
-extern int gFramebufferWidth;
-extern int gFramebufferHeight;
+extern float gFramebufferWidth;
+extern float gFramebufferHeight;
 extern const char *gWindowTitle;
 
 void mainLoop(GLFWwindow *window)
@@ -543,12 +559,12 @@ void mainLoop(GLFWwindow *window)
     {
         const auto new_time = glfwGetTime();
         // Elapsed time since last frame, in seconds.
-        const auto dt = new_time - time;
+        const auto dt = static_cast<float>(new_time - time);
         time = new_time;
 
-        update(static_cast<float>(dt));
+        update(window, dt);
         // Set up the camera and draw our scene
-        render(static_cast<float>(dt));
+        render(dt);
         // Swap front and back buffers
         glfwSwapBuffers(window);
         // Poll for and process events, this will call into the callbacks
@@ -578,7 +594,10 @@ int main(void)
         return -1;
     }
     // Get the correct size of the framebuffer.
-    glfwGetFramebufferSize(window, &gFramebufferWidth, &gFramebufferHeight);
+    int w, h;
+    glfwGetFramebufferSize(window, &w, &h);
+    gFramebufferWidth = w;
+    gFramebufferHeight = h;
 
     installCallbacks(window);
 
