@@ -311,7 +311,7 @@ public:
     {
     }
 
-    void setFov(float fov) { mFov = fov; }
+    void setFovY(float fov) { mFov = fov; }
     void setAspect(float aspect) { mAspect = aspect; }
     void setZNear(float near) { mZNear = near; }
     void setZFar(float far) { mZFar = far; }
@@ -492,6 +492,7 @@ public:
 class Cube : public Object
 {
     float mHalfSize = 0.5f;
+    int mAlpha = 255;
 
 public:
     Cube() = default;
@@ -502,6 +503,7 @@ public:
     }
 
     void setHalfSize(float half_size) { mHalfSize = half_size; }
+    void setAlpha(int alpha) { mAlpha = alpha; }
 
     void draw(float dt) override
     {
@@ -518,23 +520,23 @@ public:
 
         glBegin(GL_QUADS);
         // top
-        glColor4ub(169, 102, 194, 128);
-        // This is calling a macro defined above!
+        glColor4ub(169, 102, 194, mAlpha);
+        // This is calling the macro defined above!
         QUAD_INDICES(v, 1, 0, 4, 5);
         // bottom
-        glColor4ub(164, 33, 14, 128);
+        glColor4ub(164, 33, 14, mAlpha);
         QUAD_INDICES(v, 2, 3, 7, 6);
         // left
-        glColor4ub(228, 69, 147, 128);
+        glColor4ub(228, 69, 147, mAlpha);
         QUAD_INDICES(v, 5, 4, 6, 7);
         // right
-        glColor4ub(136, 157, 210, 128);
+        glColor4ub(136, 157, 210, mAlpha);
         QUAD_INDICES(v, 0, 1, 3, 2);
         // front
-        glColor4ub(138, 250, 122, 128);
+        glColor4ub(138, 250, 122, mAlpha);
         QUAD_INDICES(v, 1, 5, 7, 3);
         // back
-        glColor4ub(1, 37, 146, 128);
+        glColor4ub(1, 37, 146, mAlpha);
         QUAD_INDICES(v, 4, 0, 2, 6);
         glEnd();
     }

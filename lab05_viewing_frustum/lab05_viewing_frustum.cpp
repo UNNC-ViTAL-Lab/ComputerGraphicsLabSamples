@@ -9,11 +9,29 @@ extern float gHalfWidth;
 Object gSceneRoot;
 auto *gAxis = gSceneRoot.addChild<Axis>();
 auto *gGround = gSceneRoot.addChild<MeshGround>();
-// auto *gCube = gSceneRoot.addChild<Cube>();
-Cube gFrustum { 1 };
+auto *gCube = gSceneRoot.addChild<Cube>();
 
+// An observer camera which shows the world and the camera you are tweaking
 auto *gLeftCamera = gSceneRoot.addChild<PerspectiveCamera>();
-auto *gRightCamera = gSceneRoot.addChild<OrthogonalCamera>();
+
+// Two cameras for you to experiment with :)
+auto *gRightCameraOrtho = gSceneRoot.addChild<OrthogonalCamera>();
+auto *gRightCameraPersp = gSceneRoot.addChild<PerspectiveCamera>();
+
+Camera *gCameras[] {
+    gRightCameraOrtho,
+    gRightCameraPersp,
+};
+
+int gCameraSelection = 0;
+
+Camera *activeCamera()
+{
+    return gCameras[gCameraSelection];
+}
+
+// Shows the viewing frustum of the camera on the right side
+Cube gFrustum { 1 };
 
 /*****************************************************************************/
 // Scene Creation
@@ -24,23 +42,34 @@ void updateCamera()
     const float aspect = gHalfWidth / gFramebufferHeight;
 
     gLeftCamera->setAspect(aspect);
+    gRightCameraPersp->setAspect(aspect);
 
-    const float view_size = 50;
-    gRightCamera->setLeft(-view_size * aspect);
-    gRightCamera->setRight(view_size * aspect);
-    gRightCamera->setTop(view_size);
-    gRightCamera->setBottom(-view_size);
+    const float view_size = 10;
+    gRightCameraOrtho->setLeft(-view_size * aspect);
+    gRightCameraOrtho->setRight(view_size * aspect);
+    gRightCameraOrtho->setTop(view_size);
+    gRightCameraOrtho->setBottom(-view_size);
 }
 
 void initScene()
 {
     updateCamera();
 
-    gLeftCamera->position().z = 5;
+    gLeftCamera->position().z = 10;
     gLeftCamera->setZFar(1000);
 
-    gRightCamera->orientation().x = -90;
-    gRightCamera->position().y = 5;
+    gRightCameraOrtho->orientation().x = -90;
+    gRightCameraOrtho->position().y = 5;
+
+    gRightCameraPersp->setZFar(10);
+    gRightCameraPersp->setFovY(45);
+    gRightCameraPersp->position().z = 5;
+
+    gFrustum.setAlpha(128);
+
+    // References of the positions of the cameras
+    gRightCameraOrtho->addChild<Axis>(0.05f);
+    gRightCameraPersp->addChild<Axis>(0.05f);
 }
 
 /*****************************************************************************/
@@ -74,7 +103,7 @@ void update(GLFWwindow *window, float dt)
     if(glfwGetKey(window, GLFW_KEY_LEFT_CONTROL))
         gLeftCamera->position() += move;
     else
-        gRightCamera->position() += move;
+        activeCamera()->position() += move;
 }
 
 /*****************************************************************************/
@@ -84,7 +113,6 @@ void update(GLFWwindow *window, float dt)
 void drawLeftViewport(float dt)
 {
     glViewport(0, 0, gHalfWidth, gFramebufferHeight);
-
 
     glMatrixMode(GL_PROJECTION);
     // Reset the matrix
@@ -98,24 +126,23 @@ void drawLeftViewport(float dt)
     // Apply camera world-to-local transformation
     gLeftCamera->applyWorldToLocalMatrix();
 
+    // Draw the scene hierarchy
+    glEnable(GL_DEPTH_TEST);
+    gSceneRoot.drawHierarchyTransformed(dt);
+
+    // Draw the viewing frustum of the right camera
+    // Only test on the depth but not overwrite it so that all faces
+    // of the viewing frustum could be drawn
+    glDepthMask(GL_FALSE);
     // Enable alpha blending
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    // Draw the viewing frustum of the right camera
-
-    glPushMatrix();
-    // NDC->View->World
-    gRightCamera->applyLocalToWorldMatrix();
-    gRightCamera->applyInverseProjectionMatrix();
+    // Transform the NDC cube from NDC->View->World
+    // Recall that in NDC space everything is in the range of [-1, 1] on every
+    // axis.
+    activeCamera()->applyLocalToWorldMatrix();
+    activeCamera()->applyInverseProjectionMatrix();
     gFrustum.draw(dt);
-    glPopMatrix();
-
-    // Draw scene objects
-
-    glEnable(GL_DEPTH_TEST);
-    // Draw the complete scene hierarchy
-    gSceneRoot.drawHierarchyTransformed(dt);
 }
 
 void drawRightViewport(float dt)
@@ -128,13 +155,13 @@ void drawRightViewport(float dt)
     // Reset the matrix
     glLoadIdentity();
     // Apply projection matrix
-    gRightCamera->applyProjectionMatrix();
+    activeCamera()->applyProjectionMatrix();
 
     glMatrixMode(GL_MODELVIEW);
     // Reset the matrix
     glLoadIdentity();
     // Apply camera world-to-local transformation
-    gRightCamera->applyWorldToLocalMatrix();
+    activeCamera()->applyWorldToLocalMatrix();
 
     // Draw the complete scene hierarchy
     gSceneRoot.drawHierarchyTransformed(dt);
@@ -198,6 +225,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     {
         case GLFW_KEY_H:
             gSceneRoot.printObjectHierarchy();
+            break;
+
+        case GLFW_KEY_SPACE:
+            gCameraSelection = (gCameraSelection + 1) % 2;
             break;
 
         default: ;
