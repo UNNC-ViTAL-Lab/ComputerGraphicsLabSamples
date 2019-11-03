@@ -292,7 +292,7 @@ public:
     {
     }
 
-    void setFov(float fov) { mFov = fov; }
+    void setFovY(float fov) { mFov = fov; }
     void setAspect(float aspect) { mAspect = aspect; }
     void setZNear(float near) { mZNear = near; }
     void setZFar(float far) { mZFar = far; }
