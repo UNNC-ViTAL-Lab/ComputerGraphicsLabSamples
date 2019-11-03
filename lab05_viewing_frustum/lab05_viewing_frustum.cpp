@@ -13,8 +13,8 @@ auto *gCube = gSceneRoot.addChild<Cube>();
 auto *gLeftCamera = gSceneRoot.addChild<PerspectiveCamera>();
 
 // Two cameras for you to experiment with :)
-auto *gRightCameraOrtho = gSceneRoot.addChild<OrthogonalCamera>();
-auto *gRightCameraPersp = gSceneRoot.addChild<PerspectiveCamera>();
+auto *gRightCameraOrtho = gCube->addChild<OrthogonalCamera>();
+auto *gRightCameraPersp = gCube->addChild<PerspectiveCamera>();
 
 Camera *gCameras[] {
     gRightCameraOrtho,
@@ -31,6 +31,15 @@ Camera *activeCamera()
 // Shows the viewing frustum of the camera on the right side
 Cube gFrustum { 1 };
 bool gLookAt = false;
+
+Object *activeObject(GLFWwindow *window)
+{
+    if(glfwGetKey(window, GLFW_KEY_LEFT_CONTROL))
+        return activeCamera();
+    if(glfwGetKey(window, GLFW_KEY_Z))
+        return gCube;
+    return gLeftCamera;
+}
 
 /*****************************************************************************/
 // Scene Creation
@@ -99,10 +108,7 @@ void update(GLFWwindow *window, float dt)
     if(glfwGetKey(window, GLFW_KEY_E))
         move.y += step;
 
-    (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)
-         ? activeCamera()
-         : gLeftCamera
-    )->position() += move;
+    activeObject(window)->position() += move;
 }
 
 /*****************************************************************************/
@@ -243,10 +249,7 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
     gLastMouseY = ypos;
     if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2))
     {
-        (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)
-            ? activeCamera()
-            : gLeftCamera
-        )->orientation().y -= (float)dx * 0.1f;
+        activeObject(window)->orientation().y -= (float)dx * 0.1f;
     }
 }
 
