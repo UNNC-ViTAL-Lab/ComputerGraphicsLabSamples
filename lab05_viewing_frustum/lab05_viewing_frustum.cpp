@@ -41,6 +41,8 @@ Object *activeObject(GLFWwindow *window)
     return gLeftCamera;
 }
 
+Texture gCubeTex;
+
 /*****************************************************************************/
 // Scene Creation
 /*****************************************************************************/
@@ -78,6 +80,9 @@ void initScene()
     // References of the positions of the cameras
     gRightCameraOrtho->addChild<Axis>(0.05f);
     gRightCameraPersp->addChild<Axis>(0.05f);
+
+    gCubeTex.create();
+    gCube->setTexture(&gCubeTex);
 }
 
 /*****************************************************************************/
@@ -133,6 +138,8 @@ void drawLeftViewport(float dt)
 
     // Draw the scene hierarchy
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_2D);
+
     gSceneRoot.drawHierarchyTransformed(dt);
 
     // Draw the viewing frustum of the right camera
@@ -170,8 +177,6 @@ void drawRightViewport(float dt)
 {
     glViewport(gHalfWidth, 0, gHalfWidth, gFramebufferHeight);
 
-    glEnable(GL_DEPTH_TEST);
-
     glMatrixMode(GL_PROJECTION);
     // Reset the matrix
     glLoadIdentity();
@@ -195,6 +200,9 @@ void drawRightViewport(float dt)
     {
         activeCamera()->applyWorldToLocalMatrix();
     }
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_2D);
 
     // Draw the complete scene hierarchy
     gSceneRoot.drawHierarchyTransformed(dt);
@@ -276,6 +284,15 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 }
 
 /*****************************************************************************/
+// File Drop Handler
+/*****************************************************************************/
+
+void drop_callback(GLFWwindow* window, int count, const char** paths)
+{
+    gCubeTex.loadFromFile(paths[0]);
+}
+
+/*****************************************************************************/
 // Install Callbacks
 /*****************************************************************************/
 
@@ -285,4 +302,5 @@ void installCallbacks(GLFWwindow *window)
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetKeyCallback(window, key_callback);
+    glfwSetDropCallback(window, drop_callback);
 }

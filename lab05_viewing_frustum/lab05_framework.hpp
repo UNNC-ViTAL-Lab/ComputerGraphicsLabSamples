@@ -74,12 +74,17 @@ protected:
     // Child objects whose parent coodinate system is this object.
     std::vector<std::unique_ptr<Object>> mChildObjects;
 
+    class Texture *mTexture = nullptr;
+
 public:
     // A class intended for inheriting must have a virtual destructor to
     // maintain correct destruction behavior.
     virtual ~Object() = default;
 
     // Below are setters & getters for member variables.
+
+    Texture * texture() const { return mTexture; }
+    void setTexture(Texture *texture) { mTexture = texture; }
 
     // Returns a reference to the variable storing translation.
     // You can directly modify the value via the reference.
@@ -266,6 +271,56 @@ std::fill_n(std::ostream_iterator<char>(std::cout), i, ' ') \
         INDENT(indentation);
         std::cout << "Position = " << to_string(mPosition) << std::endl;
     }
+};
+
+/*****************************************************************************/
+// Texture
+/*****************************************************************************/
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+// Read https://learnopengl.com/Getting-started/Textures for more details
+// on textures.
+class Texture
+{
+    GLuint mTextureId = 0;
+    bool mLoaded = false;
+
+public:
+    ~Texture()
+    {
+        if(mTextureId)
+        {
+            glDeleteTextures(1, &mTextureId);
+            mTextureId = 0;
+        }
+    }
+
+    void create()
+    {
+        glGenTextures(1, &mTextureId);
+        glBindTexture(GL_TEXTURE_2D, mTextureId);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    void loadFromFile(const char *path)
+    {
+        int width, height, num_channels;
+        auto data = stbi_load(path, &width, &height, &num_channels, 4);
+        glBindTexture(GL_TEXTURE_2D, mTextureId);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        stbi_image_free(data);
+        mLoaded = true;
+    }
+
+    GLuint textureId() const { return mTextureId; }
+    bool loaded() const { return mLoaded; }
 };
 
 /*****************************************************************************/
@@ -480,9 +535,13 @@ public:
 /*****************************************************************************/
 
 #define QUAD_INDICES(array, a, b, c, d) \
+    glTexCoord2f(0, 0); \
     glVertex3fv(value_ptr(array[a])); \
+    glTexCoord2f(1, 0); \
     glVertex3fv(value_ptr(array[b])); \
+    glTexCoord2f(1, 1); \
     glVertex3fv(value_ptr(array[c])); \
+    glTexCoord2f(0, 1); \
     glVertex3fv(value_ptr(array[d])); \
 /**/
 
@@ -518,27 +577,40 @@ public:
             { -mHalfSize, -mHalfSize, -mHalfSize },
         };
 
+        const bool use_texture = mTexture && mTexture->loaded();
+        if(use_texture)
+            glBindTexture(GL_TEXTURE_2D, mTexture->textureId());
+
         glBegin(GL_QUADS);
-        // top
-        glColor4ub(169, 102, 194, mAlpha);
-        // This is calling the macro defined above!
-        QUAD_INDICES(v, 1, 0, 4, 5);
-        // bottom
-        glColor4ub(164, 33, 14, mAlpha);
-        QUAD_INDICES(v, 2, 3, 7, 6);
-        // left
-        glColor4ub(228, 69, 147, mAlpha);
-        QUAD_INDICES(v, 5, 4, 6, 7);
-        // right
-        glColor4ub(136, 157, 210, mAlpha);
-        QUAD_INDICES(v, 0, 1, 3, 2);
-        // front
-        glColor4ub(138, 250, 122, mAlpha);
-        QUAD_INDICES(v, 1, 5, 7, 3);
-        // back
-        glColor4ub(1, 37, 146, mAlpha);
-        QUAD_INDICES(v, 4, 0, 2, 6);
+            // top
+            if(use_texture) glColor4ub(255, 255, 255, mAlpha);
+            else glColor4ub(169, 102, 194, mAlpha);
+            // This is calling the macro defined above!
+            QUAD_INDICES(v, 1, 0, 4, 5);
+            // bottom
+            if(use_texture) glColor4ub(255, 255, 255, mAlpha);
+            else glColor4ub(164, 33, 14, mAlpha);
+            QUAD_INDICES(v, 2, 3, 7, 6);
+            // left
+            if(use_texture) glColor4ub(255, 255, 255, mAlpha);
+            else glColor4ub(228, 69, 147, mAlpha);
+            QUAD_INDICES(v, 5, 4, 6, 7);
+            // right
+            if(use_texture) glColor4ub(255, 255, 255, mAlpha);
+            else glColor4ub(136, 157, 210, mAlpha);
+            QUAD_INDICES(v, 0, 1, 3, 2);
+            // front
+            if(use_texture) glColor4ub(255, 255, 255, mAlpha);
+            else glColor4ub(138, 250, 122, mAlpha);
+            QUAD_INDICES(v, 1, 5, 7, 3);
+            // back
+            if(use_texture) glColor4ub(255, 255, 255, mAlpha);
+            else glColor4ub(1, 37, 146, mAlpha);
+            QUAD_INDICES(v, 4, 0, 2, 6);
         glEnd();
+
+        if(use_texture)
+            glBindTexture(GL_TEXTURE_2D, 0);
     }
 };
 
