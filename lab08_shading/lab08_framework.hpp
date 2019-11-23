@@ -779,7 +779,6 @@ void mainLoop(GLFWwindow *window);
 
 extern int gFramebufferWidth;
 extern int gFramebufferHeight;
-extern int gHalfWidth;
 extern const char *gWindowTitle;
 
 void mainLoop(GLFWwindow *window)

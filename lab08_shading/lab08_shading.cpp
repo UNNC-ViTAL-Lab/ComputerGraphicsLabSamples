@@ -12,30 +12,8 @@ auto *gCube = gSceneRoot.addChild<Cube>();
 // An observer camera which shows the world and the camera you are tweaking
 auto *gLeftCamera = gSceneRoot.addChild<PerspectiveCamera>();
 
-// Two cameras for you to experiment with :)
-auto *gRightCameraOrtho = gCube->addChild<OrthogonalCamera>();
-auto *gRightCameraPersp = gCube->addChild<PerspectiveCamera>();
-
-Camera *gCameras[] {
-    gRightCameraOrtho,
-    gRightCameraPersp,
-};
-
-int gCameraSelection = 0;
-
-Camera *activeCamera()
-{
-    return gCameras[gCameraSelection];
-}
-
-// Shows the viewing frustum of the camera on the right side
-Cube gFrustum { 1 };
-bool gLookAt = false;
-
 Object *activeObject(GLFWwindow *window)
 {
-    if(glfwGetKey(window, GLFW_KEY_LEFT_CONTROL))
-        return activeCamera();
     if(glfwGetKey(window, GLFW_KEY_Z))
         return gCube;
     return gLeftCamera;
@@ -50,16 +28,9 @@ Shader mBlinnPhong;
 
 void updateCamera()
 {
-    const float aspect = 1.f * gHalfWidth / gFramebufferHeight;
+    const float aspect = 1.f * gFramebufferWidth / gFramebufferHeight;
 
     gLeftCamera->setAspect(aspect);
-    gRightCameraPersp->setAspect(aspect);
-
-    const float view_size = 10;
-    gRightCameraOrtho->setLeft(-view_size * aspect);
-    gRightCameraOrtho->setRight(view_size * aspect);
-    gRightCameraOrtho->setTop(view_size);
-    gRightCameraOrtho->setBottom(-view_size);
 }
 
 void initScene()
@@ -68,19 +39,6 @@ void initScene()
 
     gLeftCamera->position().z = 20;
     gLeftCamera->setZFar(1000);
-
-    gRightCameraOrtho->orientation().x = -90;
-    gRightCameraOrtho->position().y = 5;
-
-    gRightCameraPersp->setZFar(10);
-    gRightCameraPersp->setFovY(45);
-    gRightCameraPersp->position().z = 5;
-
-    gFrustum.setAlpha(128);
-
-    // References of the positions of the cameras
-    gRightCameraOrtho->addChild<Axis>(0.05f);
-    gRightCameraPersp->addChild<Axis>(0.05f);
 
     // gCubeTex.create();
     // mBlinnPhong.load("blinn.vert", "blinn.frag");
@@ -122,9 +80,9 @@ void update(GLFWwindow *window, float dt)
 // Scene Rendering
 /*****************************************************************************/
 
-void drawLeftViewport(float dt)
+void drawViewport(float dt)
 {
-    glViewport(0, 0, gHalfWidth, gFramebufferHeight);
+    glViewport(0, 0, gFramebufferWidth, gFramebufferHeight);
 
     glMatrixMode(GL_PROJECTION);
     // Reset the matrix
@@ -141,76 +99,8 @@ void drawLeftViewport(float dt)
     // Draw the scene hierarchy
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
-    // glEnable(GL_CULL_FACE);
-    //
-    // glCullFace(GL_BACK);
-    // glFrontFace(GL_CW);
+    // glEnable(GL_LIGHTING);
 
-    gSceneRoot.drawHierarchyTransformed(dt);
-
-    // Draw the viewing frustum of the right camera
-    // Only test on the depth but not overwrite it so that all faces
-    // of the viewing frustum could be drawn
-    glDepthMask(GL_FALSE);
-    // Enable alpha blending
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    // Transform the NDC cube from NDC->View->World
-    // Recall that in NDC space everything is in the range of [-1, 1] on every
-    // axis.
-    if(gLookAt)
-    {
-        // Argument-dependent lookup automatically figures out that
-        // the functions are from glm namespace because we use glm::vec3
-        // as parameters for the outer function templates.
-        glMultMatrixf(value_ptr(inverse(
-            lookAt(
-                glm::vec3 { 5, 5, 5 },
-                glm::vec3 { 0, 0, 0 },
-                glm::vec3 { 0, 1, 0 }
-            ))));
-    }
-    else
-    {
-        activeCamera()->applyLocalToWorldMatrix();
-    }
-
-    activeCamera()->applyInverseProjectionMatrix();
-    gFrustum.draw(dt);
-}
-
-void drawRightViewport(float dt)
-{
-    glViewport(gHalfWidth, 0, gHalfWidth, gFramebufferHeight);
-
-    glMatrixMode(GL_PROJECTION);
-    // Reset the matrix
-    glLoadIdentity();
-    // Apply projection matrix
-    activeCamera()->applyProjectionMatrix();
-
-    glMatrixMode(GL_MODELVIEW);
-    // Reset the matrix
-    glLoadIdentity();
-    // Apply camera world-to-local transformation
-    if(gLookAt)
-    {
-        glMultMatrixf(value_ptr(
-            lookAt(
-                glm::vec3 { 5, 5, 5 },
-                glm::vec3 { 0, 0, 0 },
-                glm::vec3 { 0, 1, 0 }
-            )));
-    }
-    else
-    {
-        activeCamera()->applyWorldToLocalMatrix();
-    }
-
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_TEXTURE_2D);
-
-    // Draw the complete scene hierarchy
     gSceneRoot.drawHierarchyTransformed(dt);
 }
 
@@ -221,11 +111,7 @@ void render(float dt)
 
     // Save all current attributes
     glPushAttrib(GL_ALL_ATTRIB_BITS);
-    drawLeftViewport(dt);
-    glPopAttrib();
-
-    glPushAttrib(GL_ALL_ATTRIB_BITS);
-    drawRightViewport(dt);
+    drawViewport(dt);
     glPopAttrib();
 }
 
@@ -235,15 +121,13 @@ void render(float dt)
 
 int gFramebufferWidth = 1280;
 int gFramebufferHeight = 720;
-int gHalfWidth = gFramebufferWidth / 2;
-const char *gWindowTitle = "Lab 5";
+const char *gWindowTitle = "Lab 8";
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
     // Record the correct size of the viewport
     gFramebufferWidth = width;
     gFramebufferHeight = height;
-    gHalfWidth = gFramebufferWidth / 2;
     updateCamera();
 }
 
@@ -277,14 +161,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     {
         case GLFW_KEY_H:
             gSceneRoot.printObjectHierarchy();
-            break;
-
-        case GLFW_KEY_SPACE:
-            gCameraSelection = (gCameraSelection + 1) % 2;
-            break;
-
-        case GLFW_KEY_L:
-            gLookAt = !gLookAt;
             break;
 
         default: ;
