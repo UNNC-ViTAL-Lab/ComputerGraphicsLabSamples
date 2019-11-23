@@ -1,4 +1,4 @@
-﻿#include "lab07_framework.hpp"
+﻿#include "lab08_framework.hpp"
 
 /*****************************************************************************/
 // Scene Objects
@@ -269,6 +269,8 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+    ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+
     if(!action) return;
 
     switch(key)
@@ -287,6 +289,21 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
         default: ;
     }
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+}
+
+void character_callback(GLFWwindow* window, unsigned int codepoint)
+{
+    ImGui_ImplGlfw_CharCallback(window, codepoint);
 }
 
 /*****************************************************************************/
@@ -309,4 +326,7 @@ void installCallbacks(GLFWwindow *window)
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetKeyCallback(window, key_callback);
     glfwSetDropCallback(window, drop_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+    glfwSetCharCallback(window, character_callback);
 }

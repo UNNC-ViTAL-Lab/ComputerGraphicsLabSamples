@@ -15,6 +15,7 @@
 #   undef min
 #   include <GL/gl.h>
 #   include <GL/glu.h>
+#   define GLFW_EXPOSE_NATIVE_WIN32
 #endif
 
 // MacOS has different headers for OpenGL
@@ -41,11 +42,11 @@
 #include <glm/gtx/string_cast.hpp>
 
 // ImGUI
-#include "imgui-1.73/imgui.h"
+#include "imgui-1.73/imgui.cpp"
 #include "imgui-1.73/imgui_widgets.cpp"
 #include "imgui-1.73/imgui_draw.cpp"
-#include "imgui-1.73/imgui_impl_opengl2.h"
 #include "imgui-1.73/imgui_impl_opengl2.cpp"
+#include "imgui-1.73/imgui_impl_glfw.cpp"
 
 /*****************************************************************************/
 // Texture
@@ -793,9 +794,19 @@ void mainLoop(GLFWwindow *window)
         const auto dt = static_cast<float>(new_time - time);
         time = new_time;
 
+        ImGui_ImplOpenGL2_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
         update(window, dt);
         // Set up the camera and draw our scene
         render(dt);
+
+        // Rendering
+        ImGui::Render();
+        glViewport(0, 0, gFramebufferWidth, gFramebufferHeight);
+        ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+
         // Swap front and back buffers
         glfwSwapBuffers(window);
         // Poll for and process events, this will call into the callbacks
@@ -830,6 +841,11 @@ int main(void)
     glfwMakeContextCurrent(window);
     glewInit();
 
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui_ImplGlfw_InitForOpenGL(window, false);
+    ImGui_ImplOpenGL2_Init();
+
     installCallbacks(window);
 
     // Make the window's context current
@@ -839,6 +855,10 @@ int main(void)
 
     initScene();
     mainLoop(window);
+
+    ImGui_ImplOpenGL2_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     glfwTerminate();
     return 0;
