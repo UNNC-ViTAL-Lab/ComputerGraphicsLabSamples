@@ -355,6 +355,63 @@ public:
         if(mParent) mParent->applyWorldToLocalMatrix();
     }
 
+    auto localToWorldMatrix() const
+    {
+        auto s = glm::scale(glm::mat4(1), mScaling);
+        // glm::rotate uses radians but glRotate uses degrees...!!! wth
+        auto rx = glm::rotate(s,
+            glm::radians(mOrientation.x), glm::vec3(1, 0, 0));
+        auto ry = glm::rotate(rx,
+            glm::radians(mOrientation.y), glm::vec3(0, 1, 0));
+        auto rz = glm::rotate(ry,
+            glm::radians(mOrientation.z), glm::vec3(0, 0, 1));
+        auto t = glm::translate(rz, mPosition);
+
+        // t * rz * ry * rx * s;
+
+        return t;
+    }
+
+    auto worldToLocalMatrix() const
+    {
+        auto t = glm::translate(glm::mat4(1), -mPosition);
+        auto rz = glm::rotate(t,
+            glm::radians(-mOrientation.z), glm::vec3(0, 0, 1));
+        auto ry = glm::rotate(rz,
+            glm::radians(-mOrientation.y), glm::vec3(0, 1, 0));
+        auto rx = glm::rotate(ry,
+            glm::radians(-mOrientation.x), glm::vec3(1, 0, 0));
+        auto s = glm::scale(rx, 1.f / mScaling);
+
+        // s * rx * ry * rz * t;
+
+        return s;
+    }
+
+    virtual void emitControlWidgets()
+    {
+        ImGui::DragFloat3("Position", &mPosition.x, 0.01f);
+        ImGui::DragFloat3("Scaling", &mScaling.x, 0.01f);
+        ImGui::DragFloat3("Orientation", &mOrientation.x, 0.01f);
+    }
+
+    void renderControlWidgetHierarchy()
+    {
+        if(ImGui::CollapsingHeader(
+            typeid(*this).name(), ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::PushID(this);
+            emitControlWidgets();
+            ImGui::Indent(64);
+            for(auto &&c : mChildObjects)
+            {
+                c->renderControlWidgetHierarchy();
+            }
+            ImGui::Unindent(64);
+            ImGui::PopID();
+        }
+    }
+
     /**
      * \brief Issue drawing commands like glBegin() & glEnd().
      * \param dt The elapsed time since last frame. Useful for animations.
@@ -754,6 +811,8 @@ class Sphere : public Object
     float mRadius = 1;
 
 public:
+    Sphere() = default;
+
     Sphere(float radius)
         : mRadius(radius)
     {
@@ -767,7 +826,7 @@ public:
 
     void draw(float dt) override
     {
-        gluSphere(mQuadric, mRadius, 24, 24);
+        gluSphere(mQuadric, mRadius, 64, 64);
     }
 };
 

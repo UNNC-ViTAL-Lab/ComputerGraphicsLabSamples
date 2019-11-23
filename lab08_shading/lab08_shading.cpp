@@ -4,18 +4,84 @@
 // Scene Objects
 /*****************************************************************************/
 
+struct Material
+{
+    // These are default values as said in
+    // https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glMaterial.xml
+
+    glm::vec4 ambient { 0.2f, 0.2f, 0.2f, 1.0f };
+    glm::vec4 diffuse { 0.8f, 0.8f, 0.8f, 1.0f };
+    glm::vec4 specular { 0, 0, 0, 1 };
+    glm::vec4 emission { 0, 0, 0, 1 };
+    float shininess = 0;
+
+    void emitControlWidgets()
+    {
+        ImGui::SliderFloat4("Ambient", &ambient.x, 0, 1);
+        ImGui::SliderFloat4("Diffuse", &diffuse.x, 0, 1);
+        ImGui::SliderFloat4("Specular", &specular.x, 0, 1);
+        ImGui::SliderFloat4("Emission", &emission.x, 0, 1);
+        ImGui::SliderFloat("Shininess", &shininess, 0, 128);
+    }
+
+    void apply()
+    {
+        glMaterialfv(GL_FRONT, GL_AMBIENT, &ambient.x);
+        glMaterialfv(GL_FRONT, GL_DIFFUSE, &diffuse.x);
+        glMaterialfv(GL_FRONT, GL_SPECULAR, &specular.x);
+        glMaterialfv(GL_FRONT, GL_EMISSION, &emission.x);
+        glMaterialfv(GL_FRONT, GL_SHININESS, &shininess);
+    }
+};
+
+class Light : public Object
+{
+public:
+    // See https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glLight.xml
+
+    glm::vec4 ambient { 0, 0, 0, 1 };
+    glm::vec4 diffuse { 1, 1, 1, 1 };
+    glm::vec4 specular { 1, 1, 1, 1 };
+    bool directional = true;
+    int light_idx = GL_LIGHT0;
+
+    Light() = default;
+
+    explicit Light(int light_idx)
+        : light_idx(light_idx)
+    {
+    }
+
+    void emitControlWidgets() override
+    {
+        Object::emitControlWidgets();
+
+        ImGui::SliderFloat4("Ambient", &ambient.x, 0, 1);
+        ImGui::SliderFloat4("Diffuse", &diffuse.x, 0, 1);
+        ImGui::SliderFloat4("Specular", &specular.x, 0, 1);
+        ImGui::Checkbox("Directional", &directional);
+    }
+
+    void draw(float dt) override
+    {
+        glLightfv(light_idx, GL_AMBIENT, &ambient.x);
+        glLightfv(light_idx, GL_DIFFUSE, &diffuse.x);
+        glLightfv(light_idx, GL_SPECULAR, &specular.x);
+        glm::vec4 pos { mPosition, directional ? 0 : 1 };
+        glLightfv(light_idx, GL_POSITION, &pos.x);
+    }
+};
+
 Object gSceneRoot;
 auto *gAxis = gSceneRoot.addChild<Axis>();
 auto *gGround = gSceneRoot.addChild<MeshGround>();
-auto *gCube = gSceneRoot.addChild<Cube>();
+Material gMaterial;
 
 // An observer camera which shows the world and the camera you are tweaking
 auto *gLeftCamera = gSceneRoot.addChild<PerspectiveCamera>();
 
 Object *activeObject(GLFWwindow *window)
 {
-    if(glfwGetKey(window, GLFW_KEY_Z))
-        return gCube;
     return gLeftCamera;
 }
 
@@ -39,6 +105,10 @@ void initScene()
 
     gLeftCamera->position().z = 20;
     gLeftCamera->setZFar(1000);
+    gLeftCamera->addChild<Axis>();
+
+    gSceneRoot.addChild<Light>()->position().z = 10;
+    gSceneRoot.addChild<Sphere>(5);
 
     // gCubeTex.create();
     // mBlinnPhong.load("blinn.vert", "blinn.frag");
@@ -58,7 +128,7 @@ void update(GLFWwindow *window, float dt)
         multiplier /= 10;
     const auto step = 0.1f * multiplier;
 
-    glm::vec3 move { 0, 0, 0 };
+    glm::vec4 move { 0, 0, 0, 0 };
 
     if(glfwGetKey(window, GLFW_KEY_W))
         move.z -= step;
@@ -73,7 +143,10 @@ void update(GLFWwindow *window, float dt)
     if(glfwGetKey(window, GLFW_KEY_E))
         move.y += step;
 
-    activeObject(window)->position() += move;
+    auto active_object = activeObject(window);
+
+    move = active_object->localToWorldMatrix() * move;
+    active_object->position() += glm::vec3(move);
 }
 
 /*****************************************************************************/
@@ -99,9 +172,32 @@ void drawViewport(float dt)
     // Draw the scene hierarchy
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
-    // glEnable(GL_LIGHTING);
+    // Normalize the normals after scaling the objects to get correct lighting
+    glEnable(GL_NORMALIZE);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
 
+    gMaterial.apply();
     gSceneRoot.drawHierarchyTransformed(dt);
+
+    if(ImGui::Begin("Scene Graph"))
+    {
+        if(ImGui::Button("100% Font Size"))
+        {
+            ImGui::SetWindowFontScale(1.f);
+        } ImGui::SameLine();
+        if(ImGui::Button("200% Font Size"))
+        {
+            ImGui::SetWindowFontScale(2.f);
+        } ImGui::SameLine();
+        if(ImGui::Button("300% Font Size"))
+        {
+            ImGui::SetWindowFontScale(3.f);
+        }
+
+        gSceneRoot.renderControlWidgetHierarchy();
+    }
+    ImGui::End();
 }
 
 void render(float dt)
