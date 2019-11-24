@@ -1,6 +1,6 @@
 #pragma once
 
-#include <gl/glew.h>
+// #include <gl/glew.h>
 
 // Linking with OpenGL libraries in Windows
 #ifdef _WIN32
@@ -102,7 +102,7 @@ public:
 /*****************************************************************************/
 // Shader
 /*****************************************************************************/
-
+/*
 std::string readFileToString(const char *path)
 {
     std::string code;
@@ -222,7 +222,7 @@ public:
 
     GLuint programId() const { return mProgram; }
 };
-
+*/
 /*****************************************************************************/
 // Object
 /*****************************************************************************/
@@ -263,7 +263,7 @@ protected:
     std::vector<std::unique_ptr<Object>> mChildObjects;
 
     Texture *mTexture = nullptr;
-    Shader *mShader = nullptr;
+    // Shader *mShader = nullptr;
 
 public:
     // A class intended for inheriting must have a virtual destructor to
@@ -273,7 +273,7 @@ public:
     // Below are setters & getters for member variables.
 
     void setTexture(Texture *texture) { mTexture = texture; }
-    void setShader(Shader *shader) { mShader = shader; }
+    // void setShader(Shader *shader) { mShader = shader; }
 
     // Returns a reference to the variable storing translation.
     // You can directly modify the value via the reference.
@@ -449,12 +449,12 @@ public:
         // Apply cube local-to-parent transformation, might be overridden in
         // derived classes.
         applyLocalToParentMatrix();
-        if(mShader) glUseProgram(mShader->programId());
+        // if(mShader) glUseProgram(mShader->programId());
         if(mTexture) glBindTexture(GL_TEXTURE_2D, mTexture->textureId());
         // Call the draw() function of the derived class.
         draw(dt);
         if(mTexture) glBindTexture(GL_TEXTURE_2D, 0);
-        if(mShader) glUseProgram(0);
+        // if(mShader) glUseProgram(0);
         // Restore to last saved matrix
         glPopMatrix();
     }
@@ -828,6 +828,13 @@ public:
     {
         gluSphere(mQuadric, mRadius, 64, 64);
     }
+
+    void emitControlWidgets() override
+    {
+        Object::emitControlWidgets();
+
+        ImGui::DragFloat("Radius", &mRadius, 0.1f, 0, FLT_MAX);
+    }
 };
 
 void installCallbacks(GLFWwindow *window);
@@ -897,7 +904,7 @@ int main(void)
     glfwGetFramebufferSize(window, &gFramebufferWidth, &gFramebufferHeight);
 
     glfwMakeContextCurrent(window);
-    glewInit();
+    // glewInit();
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();

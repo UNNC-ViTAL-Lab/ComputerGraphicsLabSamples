@@ -86,7 +86,7 @@ Object *activeObject(GLFWwindow *window)
 }
 
 // Texture gCubeTex;
-Shader mBlinnPhong;
+// Shader mBlinnPhong;
 
 /*****************************************************************************/
 // Scene Creation
@@ -108,7 +108,7 @@ void initScene()
     gLeftCamera->addChild<Axis>();
 
     gSceneRoot.addChild<Light>()->position().z = 10;
-    gSceneRoot.addChild<Sphere>(5);
+    gSceneRoot.addChild<Sphere>(5.f);
 
     // gCubeTex.create();
     // mBlinnPhong.load("blinn.vert", "blinn.frag");
@@ -153,6 +153,11 @@ void update(GLFWwindow *window, float dt)
 // Scene Rendering
 /*****************************************************************************/
 
+bool gEnableNormalize = false;
+bool gEnableLighting = true;
+// enable first light, disable others
+bool gEnabledLights[8] { true, false };
+
 void drawViewport(float dt)
 {
     glViewport(0, 0, gFramebufferWidth, gFramebufferHeight);
@@ -173,31 +178,59 @@ void drawViewport(float dt)
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
     // Normalize the normals after scaling the objects to get correct lighting
-    glEnable(GL_NORMALIZE);
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
+    if(gEnableNormalize) glEnable(GL_NORMALIZE);
+    if(gEnableLighting) glEnable(GL_LIGHTING);
+    for(auto i = 0; i < 8; ++i)
+    {
+        if(gEnabledLights[i])
+            glEnable(GL_LIGHT0 + i);
+    }
 
     gMaterial.apply();
     gSceneRoot.drawHierarchyTransformed(dt);
 
-    if(ImGui::Begin("Scene Graph"))
+    using namespace ImGui;
+    if(Begin("Scene Control"))
     {
-        if(ImGui::Button("100% Font Size"))
+        if(Button("100% Font Size"))
         {
-            ImGui::SetWindowFontScale(1.f);
-        } ImGui::SameLine();
-        if(ImGui::Button("200% Font Size"))
+            SetWindowFontScale(1.f);
+        } SameLine();
+        if(Button("200% Font Size"))
         {
-            ImGui::SetWindowFontScale(2.f);
-        } ImGui::SameLine();
-        if(ImGui::Button("300% Font Size"))
+            SetWindowFontScale(2.f);
+        } SameLine();
+        if(Button("300% Font Size"))
         {
-            ImGui::SetWindowFontScale(3.f);
+            SetWindowFontScale(3.f);
+        }
+
+        if(CollapsingHeader("OpenGL Options", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            PushID("ogl");
+            Checkbox("GL_NORMALIZE", &gEnableNormalize);
+            SameLine();
+            Checkbox("GL_LIGHTING", &gEnableLighting);
+            for(auto i = 0; i < 8; ++i)
+            {
+                static char name[] = "GL_LIGHT#";
+                name[8] = '0' + i;
+                Checkbox(name, &gEnabledLights[i]);
+                if((i + 1) % 4 != 0) SameLine();
+            }
+            PopID();
+        }
+
+        if(CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            PushID("mat");
+            gMaterial.emitControlWidgets();
+            PopID();
         }
 
         gSceneRoot.renderControlWidgetHierarchy();
     }
-    ImGui::End();
+    End();
 }
 
 void render(float dt)
